@@ -161,7 +161,7 @@ function installPromo({ urlText }) {
   const easeOutBack = (t) => 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const S = { caps: [], flash: -9, shake: -9, zoom: { from: 1, to: 1, t0: 0, over: 0 }, title: null, end: null, badge: null, tap: null };
-  const Y = { top: 168, mid: 330, low: 470 };
+  const Y = { top: 192, mid: 380, low: 545 };
 
   window.__promo = {
     hold(dir) {
