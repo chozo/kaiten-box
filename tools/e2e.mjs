@@ -3,7 +3,7 @@ import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import { serve } from './serve.mjs';
 
-// E2E_URL を指定すると公開URLを確認する（例: E2E_URL=https://kaiten-box.matsudam.workers.dev/ npm run e2e）
+// E2E_URL を指定すると公開URLを確認する（例: E2E_URL=https://game.chozo.net/kaiten-box/ npm run e2e）
 const server = process.env.E2E_URL ? null : await serve(0);
 const url = process.env.E2E_URL || `http://localhost:${server.address().port}/`;
 const outDir = new URL('../.e2e/', import.meta.url);

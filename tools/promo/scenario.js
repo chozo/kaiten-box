@@ -1,7 +1,7 @@
 // 告知動画の台本。上から順に実行する。
 // wait（秒）と until:'idle'（動きが落ち着くまで）だけが時間を進め、ほかはその場で実行される。
 // move: 'next' は最短解の次の1手（hold 秒だけプレビューを見せてから確定）、'wrong' はわざと外す1手。
-export const URL_TEXT = 'kaiten-box.matsudam.workers.dev';
+export const URL_TEXT = 'game.chozo.net/kaiten-box';
 export const DURATION = 30;
 
 export const steps = [

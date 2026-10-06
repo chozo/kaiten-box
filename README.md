@@ -50,7 +50,7 @@ npm install          # playwright-core（E2E用）・wrangler（公開用）
 npm run dev          # http://localhost:5173/ で起動
 npm run levels       # 全ステージの可解性・最短手数（最初の1手に「下」は使えない条件）・行き詰まり状態数を表示
 npm run e2e          # インストール済みChromeで通しプレイ・画面サイズを確認（スクリーンショットは .e2e/）
-npm run build        # 公開用のファイルを dist/ に出力
+npm run build        # 公開用のファイルを dist/kaiten-box/ に出力
 npm run deploy       # build してから Cloudflare Workers（静的アセット）へ公開
 ```
 
@@ -60,14 +60,17 @@ npm run deploy       # build してから Cloudflare Workers（静的アセッ�
 | `levels.js` | ステージ定義（`#` 壁 / `H` ハムスター / `B` 積み木 / `S` スイッチ / `exit` 出口の穴） |
 | `game.js` | 描画・演出・入力・音。冒頭の `CONFIG` に調整値をまとめている |
 | `tools/` | 簡易サーバー、ステージ検証、E2E、公開用ビルド（`build-dist.mjs`） |
-| `wrangler.jsonc` | Cloudflare Workers の設定（Worker名 `kaiten-box`、静的アセットのみ） |
+| `wrangler.jsonc` | Cloudflare Workers の設定（Worker名 `kaiten-box`、静的アセットのみ、game.chozo.net/kaiten-box のルート） |
 
 最短手数は起動時に BFS で計算します。確認用の入口として `window.__game`（`snapshot` / `start()` / `title()` / `press(dir)` / `hold(dir)` / `undo()` / `manual(true)` / `step(dt, n)` / `solution()`）を用意しています。
 
 ## 公開
 
-- 英字名（slug）は `kaiten-box` です。GitHubリポジトリ名とWorker名にそろえています。
-- Cloudflare Workers の静的アセットとして、workers.dev で公開しています（`npm run deploy`）。
+- 公開URL：**https://game.chozo.net/kaiten-box/**
+- 英字名（slug）は `kaiten-box` です。GitHubリポジトリ名・Worker名・公開URLのパスにそろえています。
+- Cloudflare Workers の静的アセットとして公開しています（`npm run deploy`）。game.chozo.net の他のゲームと同じく、`game.chozo.net/kaiten-box` と `game.chozo.net/kaiten-box/*` のルートだけを担当し、workers.dev のURLは使いません（`workers_dev: false`）。
+- 公開URLのパスに合わせて、`npm run build` は `dist/kaiten-box/` に出力します。`/kaiten-box` は `/kaiten-box/` に転送されます。
+- `E2E_URL=https://game.chozo.net/kaiten-box/ npm run e2e` で、公開版に対して自動確認を実行できます。
 
 ## 告知動画
 
@@ -104,7 +107,7 @@ PROMO_ENCODE_ONLY=1 npm run promo    # 撮り直さず、work/ の素材から�
 
 1・2面は手で描きました。3〜5面は「どの積み木を取り除いても解けない、または遠回りになる」（全部の積み木に役割がある）配置を自動で探し、その中から形のすっきりしたものを選びました。どの面も、どの状態からでも解けて（行き詰まり0）、最短の解き方は1通りです。
 
-2026-10-05：「難しすぎる」という感想を受けて易しくしました。最短手数を 4/6/7 から 3/4/5 に減らし、詰む状態をなくしました。戻せる回数を無制限にし、扉が開いた手でそのまま脱出できるようにしました。続けて、制限時間と得点をなくし、自己ベストの記録を加えました。さらに4面・5面（最短7手・9手。5面は積み木3つ）を足し、ステージ選択はなくしました。2026-10-06：「つづきから」を加えました。タイトルを「重力は横向き、箱入りハムスター」から「回転ボックス」に変え、タイトル画面を一文の説明だけにしました。箱を正立に戻さず回したままにし、操作を画面の向き基準に変えました。▼ボタンをなくしました（最初の1手に「下」が使えないため、4面の最短は7手から8手になりました）。面のつなぎの演出、画面に固定した光と影、ハムスターの待機中の動きを加えました。ステージを手で整え、各面に「覚えること」を1つずつ置きました（自己ベストは保存キーを `-v2` にして記録し直し）。全クリアのお祝いを派手にしました。GitHub と Cloudflare に公開し、告知動画を作りました。
+2026-10-05：「難しすぎる」という感想を受けて易しくしました。最短手数を 4/6/7 から 3/4/5 に減らし、詰む状態をなくしました。戻せる回数を無制限にし、扉が開いた手でそのまま脱出できるようにしました。続けて、制限時間と得点をなくし、自己ベストの記録を加えました。さらに4面・5面（最短7手・9手。5面は積み木3つ）を足し、ステージ選択はなくしました。2026-10-06：「つづきから」を加えました。タイトルを「重力は横向き、箱入りハムスター」から「回転ボックス」に変え、タイトル画面を一文の説明だけにしました。箱を正立に戻さず回したままにし、操作を画面の向き基準に変えました。▼ボタンをなくしました（最初の1手に「下」が使えないため、4面の最短は7手から8手になりました）。面のつなぎの演出、画面に固定した光と影、ハムスターの待機中の動きを加えました。ステージを手で整え、各面に「覚えること」を1つずつ置きました（自己ベストは保存キーを `-v2` にして記録し直し）。全クリアのお祝いを派手にしました。GitHub と Cloudflare に公開し、告知動画を作りました。公開URLを game.chozo.net/kaiten-box/ に移しました。
 
 ## 確認状況
 

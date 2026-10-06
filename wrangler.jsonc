@@ -1,9 +1,15 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  // 静的ファイルだけの Worker（workers.dev で公開）
+  "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "kaiten-box",
   "compatibility_date": "2026-10-01",
-  "assets": {
-    "directory": "./dist"
-  }
+  // game.chozo.net の他のゲームと同じく、パス配下だけで公開する
+  "workers_dev": false,
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  // 静的アセットだけを配信（Worker スクリプトなし）。
+  // URL の /kaiten-box/ に合わせ、dist/kaiten-box/ に出力している
+  "assets": { "directory": "./dist" },
+  "routes": [
+    { "pattern": "game.chozo.net/kaiten-box", "zone_name": "chozo.net" },
+    { "pattern": "game.chozo.net/kaiten-box/*", "zone_name": "chozo.net" }
+  ]
 }
