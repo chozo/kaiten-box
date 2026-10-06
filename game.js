@@ -1101,6 +1101,76 @@
 
     drawGravityIndicator(c, fit);
     drawParty();
+    if (!ui.title.hidden) drawTitleArt();
+  }
+
+  // ---- タイトルの絵: 回る光の筋、跳ねるハムスター、浮かぶ積み木 ----
+  const titleArt = $('title-art');
+  const tctx = titleArt.getContext('2d');
+  function drawTitleArt() {
+    const w = titleArt.clientWidth;
+    const h = titleArt.clientHeight;
+    if (!w || !h) return;
+    if (titleArt.width !== Math.round(w * dpr) || titleArt.height !== Math.round(h * dpr)) {
+      titleArt.width = Math.round(w * dpr);
+      titleArt.height = Math.round(h * dpr);
+    }
+    const t = game.clock;
+    const keep = ctx;
+    ctx = tctx;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2;
+    const groundY = h * 0.92;
+    // 回る光の筋
+    ctx.save();
+    ctx.translate(cx, h * 0.55);
+    ctx.rotate(t * 0.25);
+    for (let i = 0; i < 12; i++) {
+      ctx.rotate((Math.PI * 2) / 12);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-w * 0.09, -w * 0.7);
+      ctx.lineTo(w * 0.09, -w * 0.7);
+      ctx.closePath();
+      ctx.fillStyle = i % 2 ? 'rgba(255,214,120,.4)' : 'rgba(255,236,180,.3)';
+      ctx.fill();
+    }
+    ctx.restore();
+    // 光の筋は外側に向かって消す（四角い枠が見えないように）
+    const fade = ctx.createRadialGradient(cx, h * 0.55, 0, cx, h * 0.55, Math.min(w, h * 1.4) * 0.5);
+    fade.addColorStop(0, 'rgba(0,0,0,1)');
+    fade.addColorStop(0.55, 'rgba(0,0,0,.7)');
+    fade.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+    // 浮かぶ積み木（★●▲）
+    const blockC = h * 0.26;
+    const blocks = [
+      { x: 0.17, y: 0.36, idx: 0, ph: 0 },
+      { x: 0.84, y: 0.3, idx: 1, ph: 2.1 },
+      { x: 0.76, y: 0.74, idx: 2, ph: 4.2 },
+    ];
+    for (const b of blocks) {
+      ctx.save();
+      ctx.translate(w * b.x, h * b.y + Math.sin(t * 1.8 + b.ph) * h * 0.04);
+      ctx.rotate(Math.sin(t * 1.3 + b.ph) * 0.25);
+      drawBlock(0, 0, blockC, b.idx, 1, 1, false);
+      ctx.restore();
+    }
+    // ハムスター（着地でつぶれながら跳ねる）
+    const size = h * 0.56;
+    const ph = (t * 1.5) % 1;
+    const jump = Math.sin(ph * Math.PI);
+    const land = ph < 0.12 ? 1 - ph / 0.12 : 0;
+    ctx.fillStyle = 'rgba(90,55,20,.18)';
+    ctx.beginPath();
+    ctx.ellipse(cx, groundY, size * 0.4 * (1 - jump * 0.3), size * 0.07, 0, 0, Math.PI * 2);
+    ctx.fill();
+    drawHamster(cx, groundY - size * 0.45 - jump * size * 0.32, size, Math.sin(t * 3) * 0.08, 1 + land * 0.2, 1 - land * 0.2 + jump * 0.05, { clear: true });
+    ctx = keep;
   }
 
   // 盤面座標 (x,y) のマス中心 → 描画座標

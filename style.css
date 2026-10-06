@@ -159,6 +159,8 @@ button {
 }
 .kicker { margin: 0; color: var(--accent); font-size: 3.6cqw; font-weight: bold; letter-spacing: .1em; }
 .card h1 { margin: 2cqw 0 4cqw; font-size: 11cqw; line-height: 1.2; letter-spacing: .04em; }
+/* タイトルの絵（跳ねるハムスターと積み木） */
+#title-art { display: block; width: 100%; height: 44cqw; margin: -2cqw 0 -1cqw; }
 .card h2 { margin: 2cqw 0; font-size: 7.4cqw; }
 .card h1 + .lead { margin: 0 0 7cqw; font-size: 4.4cqw; line-height: 1.6; color: var(--ink-soft); }
 .big-btn {
