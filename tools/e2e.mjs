@@ -3,8 +3,9 @@ import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import { serve } from './serve.mjs';
 
-const server = await serve(0);
-const url = `http://localhost:${server.address().port}/`;
+// E2E_URL を指定すると公開URLを確認する（例: E2E_URL=https://kaiten-box.matsudam.workers.dev/ npm run e2e）
+const server = process.env.E2E_URL ? null : await serve(0);
+const url = process.env.E2E_URL || `http://localhost:${server.address().port}/`;
 const outDir = new URL('../.e2e/', import.meta.url);
 fs.mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -177,6 +178,6 @@ for (const [w, h, name] of [[360, 640, 'small'], [1280, 800, 'pc']]) {
 }
 
 await browser.close();
-server.close();
+server?.close();
 console.log(failed ? `失敗 ${failed}件` : 'すべて成功');
 process.exit(failed ? 1 : 0);

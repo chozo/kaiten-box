@@ -10,9 +10,11 @@
     "levels": "node tools/check-levels.mjs",
     "e2e": "node tools/e2e.mjs",
     "build": "node tools/build-dist.mjs",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "promo": "node tools/promo/record.mjs"
   },
   "devDependencies": {
+    "ffmpeg-static": "^5.3.0",
     "playwright-core": "^1.63.0",
     "wrangler": "^4.147.0"
   }

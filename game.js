@@ -137,6 +137,16 @@
     let ac = null;
     let master = null;
     let noiseBuf = null;
+    // 書き出し時は、記録した時刻を tBase に入れて鳴らし直す
+    let tBase = 0;
+    let rec = null; // 撮影中の記録 { clock, events }
+    const now = () => ac.currentTime + tBase;
+    function makeNoise(ctx) {
+      const b = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return b;
+    }
     function ensure() {
       if (!ac) {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -145,16 +155,14 @@
         master = ac.createGain();
         master.gain.value = 0.7;
         master.connect(ac.destination);
-        noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
-        const d = noiseBuf.getChannelData(0);
-        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        noiseBuf = makeNoise(ac);
       }
       if (ac.state === 'suspended') ac.resume();
       return ac;
     }
     function tone(type, f0, f1, dur, gain, delay = 0) {
       if (!ac) return;
-      const t = ac.currentTime + delay;
+      const t = now() + delay;
       const o = ac.createOscillator();
       const g = ac.createGain();
       o.type = type;
@@ -169,7 +177,7 @@
     }
     function noise(dur, f0, f1, q, gain, delay = 0) {
       if (!ac) return;
-      const t = ac.currentTime + delay;
+      const t = now() + delay;
       const s = ac.createBufferSource();
       s.buffer = noiseBuf;
       const f = ac.createBiquadFilter();
@@ -185,8 +193,7 @@
       s.start(t, Math.random() * 0.5);
       s.stop(t + dur + 0.02);
     }
-    return {
-      ensure,
+    const sounds = {
       whoosh(up) {
         noise(0.26, up ? 1500 : 380, up ? 380 : 1500, 1.2, 0.09);
       },
@@ -257,6 +264,91 @@
         noise(0.08, 900, 400, 1.2, 0.12);
       },
     };
+
+    // 撮影用のBGM（軽いキック・ハイハット・ベース・きらきら）
+    function beat(from, to, bpm) {
+      const spb = 60 / bpm;
+      const bass = [131, 131, 98, 110, 87, 87, 98, 98];
+      const arp = [523, 659, 784, 659, 587, 698, 880, 698];
+      let k = 0;
+      for (let t = from; t < to; t += spb / 2, k++) {
+        tBase = t;
+        if (k % 2 === 0) tone('sine', 140, 45, 0.18, 0.22);
+        else noise(0.05, 7000, 6000, 1.5, 0.025);
+        if (k % 2 === 0) {
+          const f = bass[Math.floor(k / 4) % bass.length];
+          tone('triangle', f, f, spb * 0.9, 0.08);
+        }
+        const a = arp[k % arp.length];
+        tone('triangle', a * 2, a * 2, 0.12, 0.022);
+      }
+      tBase = 0;
+    }
+
+    const api = {
+      ensure,
+      // 撮影中は鳴らさずに、動画の時刻つきで記録する
+      record(clock) {
+        rec = clock ? { clock, events: [] } : null;
+      },
+      takeRecording() {
+        return rec ? rec.events.slice() : [];
+      },
+      // 記録した効果音（と BGM）を OfflineAudioContext で書き出し、16bit WAV（base64）で返す
+      async renderOffline(events, duration, opt = {}) {
+        const sr = 44100;
+        const off = new OfflineAudioContext(2, Math.ceil(sr * duration), sr);
+        const keep = { ac, master, noiseBuf };
+        ac = off;
+        master = off.createGain();
+        master.gain.value = 0.7;
+        master.connect(off.destination);
+        noiseBuf = makeNoise(off);
+        for (const ev of events) {
+          tBase = ev.t;
+          sounds[ev.name](...ev.args);
+        }
+        tBase = 0;
+        if (opt.beat) beat(opt.beat.from, opt.beat.to, opt.beat.bpm);
+        const buf = await off.startRendering();
+        ({ ac, master, noiseBuf } = keep);
+        const n = buf.length;
+        const out = new DataView(new ArrayBuffer(44 + n * 4));
+        const str = (o, t) => [...t].forEach((ch, i) => out.setUint8(o + i, ch.charCodeAt(0)));
+        str(0, 'RIFF');
+        out.setUint32(4, 36 + n * 4, true);
+        str(8, 'WAVEfmt ');
+        out.setUint32(16, 16, true);
+        out.setUint16(20, 1, true);
+        out.setUint16(22, 2, true);
+        out.setUint32(24, sr, true);
+        out.setUint32(28, sr * 4, true);
+        out.setUint16(32, 4, true);
+        out.setUint16(34, 16, true);
+        str(36, 'data');
+        out.setUint32(40, n * 4, true);
+        const L0 = buf.getChannelData(0);
+        const R0 = buf.getChannelData(1);
+        for (let i = 0; i < n; i++) {
+          out.setInt16(44 + i * 4, Math.max(-1, Math.min(1, L0[i])) * 32767, true);
+          out.setInt16(46 + i * 4, Math.max(-1, Math.min(1, R0[i])) * 32767, true);
+        }
+        let bin = '';
+        const bytes = new Uint8Array(out.buffer);
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        return btoa(bin);
+      },
+    };
+    for (const name of Object.keys(sounds)) {
+      api[name] = (...args) => {
+        if (rec) {
+          rec.events.push({ name, args, t: rec.clock() });
+          return;
+        }
+        sounds[name](...args);
+      };
+    }
+    return api;
   })();
 
   // ---- 補助 ----
@@ -1870,6 +1962,8 @@
         state: cloneState(game.state),
         open: L.isOpen(game.level, game.state),
         animating: !!game.anim,
+        entering: !!game.enter,
+        canAct: canAct(),
         clearing: !!game.clearing || game.pendingClear,
         canUndo: game.history.length > 0,
         best: { ...game.best },
@@ -1882,6 +1976,8 @@
     start: (i) => startGame(i),
     title: showTitle,
     press: commit, // 盤面の方向
+    screenDir: (g) => toScreen(g), // 盤面の方向 → 今の画面上の方向
+    sfx,
     pressScreen: commitScreen, // 画面上の方向
     hold: (dir) => setHeld(dir),
     release: () => setHeld(null),
