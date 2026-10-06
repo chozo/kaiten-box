@@ -89,6 +89,7 @@ PROMO_ENCODE_ONLY=1 npm run promo    # 撮り直さず、work/ の素材から�
 - 撮影用の見た目は `tools/promo/promo.css` にあります。ショート動画アプリのUIがかぶる下20%・右15%を避けて、ゲーム画面を置いています。
 - 撮影は `tools/promo/record.mjs` が行います。インストール済みの Chrome をヘッドレスで開き、`window.__game.manual(true)` と `step()` でゲームを1コマずつ進めながら撮影します。CSSアニメーションも動画の時刻に合わせて進めます。
 - 効果音は、撮影中は鳴らさずに動画の時刻つきで記録します（`__game.sfx.record`）。書き出し時に OfflineAudioContext で同じ時刻に鳴らし直し、BGM（軽いビート）を重ねます。
+- タイトルとエンドカードのハムスターは、ゲームと同じ Canvas の絵です（`__game.drawHamsterOn` で別のキャンバスに描く）。
 - 台本の中だけ、全面を最短でクリアした記録を入れて、お祝いで ★5/5 を出しています。ゲーム本体は変えていません。
 
 ## ステージ（現在）

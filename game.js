@@ -1977,6 +1977,13 @@
     title: showTitle,
     press: commit, // 盤面の方向
     screenDir: (g) => toScreen(g), // 盤面の方向 → 今の画面上の方向
+    // 別のキャンバスに、ゲームと同じハムスターを描く（告知動画のタイトル・エンドカード用）
+    drawHamsterOn(target, x, y, size, opt = {}) {
+      const keep = ctx;
+      ctx = target;
+      drawHamster(x, y, size, opt.angle || 0, opt.sx || 1, opt.sy || 1, opt);
+      ctx = keep;
+    },
     sfx,
     pressScreen: commitScreen, // 画面上の方向
     hold: (dir) => setHeld(dir),

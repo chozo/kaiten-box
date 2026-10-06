@@ -95,7 +95,7 @@ body {
   text-align: center;
   line-height: 1.5;
 }
-#promo-title .ham { font-size: 72px; }
+#promo-title .ham { width: 140px; height: 140px; margin-bottom: -10px; }
 
 /* エンドカード（27〜30秒）。後ろが透けないよう不透明にする */
 #promo-end {
@@ -113,7 +113,7 @@ body {
     #f4d9a6;
   opacity: 0;
 }
-#promo-end .ham { font-size: 96px; }
+#promo-end .ham { width: 180px; height: 180px; margin-bottom: -14px; }
 #promo-end .logo {
   font-size: 64px;
   font-weight: 900;

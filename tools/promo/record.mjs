@@ -150,10 +150,10 @@ function installPromo({ urlText }) {
   const layer = document.createElement('div');
   layer.id = 'promo-layer';
   layer.innerHTML = `
-    <div id="promo-title"><div class="ham">🐹</div><div class="logo">${[...'回転ボックス'].map((c) => `<span>${c}</span>`).join('')}</div><div class="sub">ボックスを回して<br>ハムスターを外に出そう！</div></div>
+    <div id="promo-title"><canvas class="ham" width="280" height="280"></canvas><div class="logo">${[...'回転ボックス'].map((c) => `<span>${c}</span>`).join('')}</div><div class="sub">ボックスを回して<br>ハムスターを外に出そう！</div></div>
     <div id="promo-badge"></div>
     <div id="promo-tap">👆</div>
-    <div id="promo-end"><div class="ham">🐹</div><div class="logo">回転ボックス</div><div class="play">ブラウザで今すぐ遊べる</div><div class="url">${urlText}</div><div class="note">無料・インストール不要</div></div>
+    <div id="promo-end"><canvas class="ham" width="360" height="360"></canvas><div class="logo">回転ボックス</div><div class="play">ブラウザで今すぐ遊べる</div><div class="url">${urlText}</div><div class="note">無料・インストール不要</div></div>
     <div id="promo-flash"></div>`;
   document.body.appendChild(layer);
   const $ = (id) => document.getElementById(id);
@@ -247,8 +247,7 @@ function installPromo({ urlText }) {
           sp.style.transform = `translateY(${(1 - easeOutBack(p)) * -80 + wave}px) scale(${0.4 + 0.6 * easeOutBack(p)})`;
           sp.style.opacity = p > 0 ? 1 : 0;
         });
-        const ham = tt.querySelector('.ham');
-        ham.style.transform = `translateY(${-Math.abs(Math.sin(e * 5)) * 18}px) rotate(${Math.sin(e * 5) * 8}deg)`;
+        drawHam(tt.querySelector('.ham'), e, 5, 0.45);
         tt.querySelector('.sub').style.opacity = clamp((e - 0.8) / 0.3, 0, 1);
       }
       // エンドカード
@@ -258,10 +257,33 @@ function installPromo({ urlText }) {
         en.style.opacity = clamp(e / 0.25, 0, 1);
         en.querySelector('.logo').style.transform = `scale(${easeOutBack(clamp(e / 0.45, 0, 1))})`;
         en.querySelector('.play').style.transform = `scale(${(1 + 0.05 * Math.sin(e * 7)) * easeOutBack(clamp((e - 0.3) / 0.4, 0, 1))})`;
-        en.querySelector('.ham').style.transform = `translateY(${-Math.abs(Math.sin(e * 4.5)) * 22}px)`;
+        drawHam(en.querySelector('.ham'), e, 4.5, 0.5);
       }
     },
   };
+  // ゲームと同じハムスターを、跳ねる動き（着地でつぶれる）つきで描く
+  function drawHam(cv, e, freq, jumpH) {
+    const c2 = cv.getContext('2d');
+    c2.setTransform(1, 0, 0, 1, 0, 0);
+    c2.clearRect(0, 0, cv.width, cv.height);
+    const W = cv.width;
+    const size = W * 0.62;
+    const ph = (e * freq / Math.PI) % 1;
+    const jump = Math.sin(ph * Math.PI);
+    const land = ph < 0.12 ? 1 - ph / 0.12 : 0;
+    // 影
+    c2.fillStyle = 'rgba(90,55,20,.18)';
+    c2.beginPath();
+    c2.ellipse(W / 2, W * 0.88, size * 0.42 * (1 - jump * 0.3), size * 0.07, 0, 0, Math.PI * 2);
+    c2.fill();
+    g.drawHamsterOn(c2, W / 2, W * 0.88 - size * 0.45 - jump * size * jumpH, size, {
+      angle: Math.sin(e * freq) * 0.1,
+      sx: 1 + land * 0.22,
+      sy: 1 - land * 0.22 + jump * 0.06,
+      clear: true,
+    });
+  }
+
   function currentZoom(t) {
     const zz = S.zoom;
     const p = clamp((t - zz.t0) / zz.over, 0, 1);
