@@ -2,7 +2,7 @@
 
 ボックスを回転させて、ハムスターを外に出そう。
 
-段ボール箱ごと重力を切り替え、ハムスターと積み木を同時に転がして出口を開ける、縦型のWebパズルです。時間制限も得点もない、じっくり解くパズルとして作っています（プロトタイプ・全5ステージ）。
+段ボール箱ごと重力を切り替え、ハムスターと積み木を同時に転がして出口を開ける、縦型のWebパズルです。時間制限も得点もない、じっくり解くパズルとして作っています（全5ステージ）。
 
 ## 遊び方
 
@@ -46,7 +46,7 @@
 依存のない素のHTML/CSS/JSです。画像ファイルは使わず、すべて Canvas で描画しています。音は Web Audio で合成しています。
 
 ```sh
-npm install          # playwright-core（E2E用）・wrangler（公開用）
+npm install          # playwright-core（E2E・動画撮影用）・wrangler（公開用）・ffmpeg-static（動画書き出し用）
 npm run dev          # http://localhost:5173/ で起動
 npm run levels       # 全ステージの可解性・最短手数（最初の1手に「下」は使えない条件）・行き詰まり状態数を表示
 npm run e2e          # インストール済みChromeで通しプレイ・画面サイズを確認（スクリーンショットは .e2e/）
@@ -60,13 +60,15 @@ npm run deploy       # build してから Cloudflare Workers（静的アセッ�
 | `levels.js` | ステージ定義（`#` 壁 / `H` ハムスター / `B` 積み木 / `S` スイッチ / `exit` 出口の穴） |
 | `game.js` | 描画・演出・入力・音。冒頭の `CONFIG` に調整値をまとめている |
 | `tools/` | 簡易サーバー、ステージ検証、E2E、公開用ビルド（`build-dist.mjs`） |
+| `tools/promo/` | 告知動画の台本・撮影用の見た目・撮影と書き出し（下の「告知動画」を参照） |
 | `wrangler.jsonc` | Cloudflare Workers の設定（Worker名 `kaiten-box`、静的アセットのみ、game.chozo.net/kaiten-box のルート） |
 
-最短手数は起動時に BFS で計算します。確認用の入口として `window.__game`（`snapshot` / `start()` / `title()` / `press(dir)` / `hold(dir)` / `undo()` / `manual(true)` / `step(dt, n)` / `solution()`）を用意しています。
+最短手数は起動時に BFS で計算します。確認用の入口として `window.__game`（`snapshot` / `start()` / `title()` / `press(盤面の方向)` / `pressScreen(画面の方向)` / `screenDir(盤面の方向)` / `hold(画面の方向)` / `undo()` / `manual(true)` / `step(dt, n)` / `solution()` / `drawHamsterOn()` / `sfx`）を用意しています。
 
 ## 公開
 
 - 公開URL：**https://game.chozo.net/kaiten-box/**
+- リポジトリ：https://github.com/chozo/kaiten-box
 - 英字名（slug）は `kaiten-box` です。GitHubリポジトリ名・Worker名・公開URLのパスにそろえています。
 - Cloudflare Workers の静的アセットとして公開しています（`npm run deploy`）。game.chozo.net の他のゲームと同じく、`game.chozo.net/kaiten-box` と `game.chozo.net/kaiten-box/*` のルートだけを担当し、workers.dev のURLは使いません（`workers_dev: false`）。
 - 公開URLのパスに合わせて、`npm run build` は `dist/kaiten-box/` に出力します。`/kaiten-box` は `/kaiten-box/` に転送されます。
@@ -112,6 +114,7 @@ PROMO_ENCODE_ONLY=1 npm run promo    # 撮り直さず、work/ の素材から�
 ## 確認状況
 
 - 2026-10-05：ヘッドレスChromeで次を確認しました。開始、プレビュー、戻す（複数回）、5面の通しクリア、200秒放置しても終わらないこと、ステージ選択のUIがないこと、自己ベストの保存と再読み込み後の復元、「はじめる」が1面から始まること、つづきから（2面の途中で再読み込み → 2面から再開、「はじめから」で1面、全クリア後は表示されない）、360×640/390×844/1280×800 の表示。
+- 2026-10-06：ヘッドレスChromeで、次の確認を追加しました。箱を回したままになること、回った箱で画面の向きどおりに操作できること、▼ボタンがないこと、全クリアのお祝いが始まること。手元と公開版（`E2E_URL`）の両方で全項目が通りました。
 - 2026-10-06：公開版（game.chozo.net/kaiten-box/）を、スマホ実機で確認しました。動作・描画・音に問題はありませんでした。
 
 ## ライセンス
