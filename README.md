@@ -44,7 +44,7 @@
 
 ## 開発
 
-依存のない素のHTML/CSS/JSです。画像ファイルは使わず、すべて Canvas で描画しています。音は Web Audio で合成しています。
+依存のない素のHTML/CSS/JSです。ゲーム内に画像ファイルは使わず、すべて Canvas で描画しています（画像は favicon と SNS 共有用の OGP 画像だけ）。音は Web Audio で合成しています。
 
 ```sh
 npm install          # playwright-core（E2E・動画撮影用）・wrangler（公開用）・ffmpeg-static（動画書き出し用）
@@ -53,6 +53,7 @@ npm run levels       # 全ステージの可解性・最短手数（最初の1�
 npm run e2e          # インストール済みChromeで通しプレイ・画面サイズを確認（スクリーンショットは .e2e/）
 npm run build        # 公開用のファイルを dist/kaiten-box/ に出力
 npm run deploy       # build してから Cloudflare Workers（静的アセット）へ公開
+npm run ogp          # SNS共有用の OGP 画像 public/ogp.png（1200×630）を作り直す
 ```
 
 | ファイル | 役割 |
@@ -61,6 +62,8 @@ npm run deploy       # build してから Cloudflare Workers（静的アセッ�
 | `levels.js` | ステージ定義（`#` 壁 / `H` ハムスター / `B` 積み木 / `S` スイッチ / `exit` 出口の穴） |
 | `game.js` | 描画・演出・入力・音。冒頭の `CONFIG` に調整値をまとめている |
 | `tools/` | 簡易サーバー、ステージ検証、E2E、公開用ビルド（`build-dist.mjs`） |
+| `public/` | 公開ルートにそのまま置くファイル（`favicon.svg`・`ogp.png`）。開発サーバーもルートのパスで返し、build で `dist/kaiten-box/` 直下にコピーする |
+| `tools/ogp/` | OGP画像の生成（`make-ogp.mjs`）。ゲームを `window.__game` で3面の途中まで進めて撮り、タイトル・遊び方・URL・ハムスターと並べる |
 | `tools/promo/` | 告知動画の台本・撮影用の見た目・撮影と書き出し（下の「告知動画」を参照） |
 | `wrangler.jsonc` | Cloudflare Workers の設定（Worker名 `kaiten-box`、静的アセットのみ、game.chozo.net/kaiten-box のルート） |
 

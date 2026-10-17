@@ -9,7 +9,9 @@ export function serve(port = Number(process.env.PORT) || 5173) {
   const server = http.createServer((req, res) => {
     let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (p.endsWith('/')) p += 'index.html';
-    const file = path.join(root, p);
+    // public/ のファイル（favicon・OGP画像）は公開時と同じくルートのパスで返す
+    let file = path.join(root, p);
+    if (!fs.existsSync(file)) file = path.join(root, 'public', p);
     if (!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       res.writeHead(404).end('not found');
       return;
